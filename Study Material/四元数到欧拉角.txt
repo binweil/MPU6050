@@ -1,0 +1,43 @@
+static three_axis Quaternion_to_Euler(Quarternion quaternion)
+{
+    three_axis Rad;
+    float q0, q1, q2, q3;
+    float sum;
+
+    q0 = quaternion.q0;
+    q1 = quaternion.q1;
+    q2 = quaternion.q2;
+    q3 = quaternion.q3;
+
+    sum = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
+    q0 = q0 / sum;
+    q1 = q1 / sum;
+    q2 = q2 / sum;
+    q3 = q3 / sum;
+
+    Rad.x = asin(2.0f*(q2*q3 + q0*q1));
+    Rad.y = atan2(-2 * q1 * q3 + 2 * q0 * q2, q3*q3 - q2 * q2 - q1 * q1 + q0 * q0);
+    Rad.z = atan2(2 * q1*q2 - 2 * q0*q3, q2*q2 - q3*q3 + q0*q0 - q1*q1);
+    return Rad;
+}
+static Quarternion Euler_to_Quaternion(three_axis Rad)
+{
+    Quarternion quaternion;
+
+    quaternion.q0 = 0.5*sqrt(1 + cos(Rad.y)*cos(Rad.z) + cos(Rad.x)*cos(Rad.z) + cos(Rad.x)*cos(Rad.y) + sin(Rad.x)*sin(Rad.y)*sin(Rad.z));
+    if (quaternion.q0 == 0)
+    {
+        quaternion.q0 = 1;
+        quaternion.q1 = 0;
+        quaternion.q2 = 0;
+        quaternion.q3 = 0;
+    }
+    else
+    {
+        quaternion.q1 = (sin(Rad.x) + sin(Rad.y)*sin(Rad.z) + sin(Rad.x)*cos(Rad.y)*cos(Rad.z)) / 4 / quaternion.q0;
+        quaternion.q2 = (sin(Rad.y)*cos(Rad.z) - cos(Rad.y)*sin(Rad.z)*sin(Rad.x) + sin(Rad.y)*cos(Rad.x)) / 4 / quaternion.q0;
+        quaternion.q3 = (-cos(Rad.y)*sin(Rad.z) + sin(Rad.y)*cos(Rad.z)*sin(Rad.x) - sin(Rad.z)*cos(Rad.x)) / 4 / quaternion.q0;
+    }
+
+    return quaternion;
+}

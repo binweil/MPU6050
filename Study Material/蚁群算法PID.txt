@@ -1,0 +1,151 @@
+function [BESTX,BESTY,ALLX,ALLY]=ACOUCP(K,N,Rho,Q,Lambda,LB,UB,Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB)
+
+%% 此函数实现蚁群算法，用于PID控制参数优化
+% GreenSim团队原创作品，转载请注明
+% Email:greensim@163.com
+% GreenSim团队主页：http://blog.sina.com.cn/greensim
+% [color=red]欢迎访问GreenSim——算法仿真团队→[url=http://blog.sina.com.cn/greensim]
+http://blog.sina.com.cn/greensim[/url][/color]
+%% 输入参数列表
+% K        迭代次数
+% N        蚁群规模
+% Rho      信息素蒸发系数，取值0～1之间，推荐取值0.7～0.95
+% Q        信息素增加强度，大于0，推荐取值1左右
+% Lambda   蚂蚁爬行速度，取值0～1之间，推荐取值0.1～0.5
+% LB       决策变量的下界，M×1的向量
+% UB       决策变量的上界，M×1的向量
+% Num      被控制对象传递函数的分子系数向量
+% Den      被控制对象传递函数的分母系数向量
+% Delay    时间延迟
+% ts       仿真时间步长
+% StepNum  仿真总步数
+% SigType  信号类型，1为阶跃信号，2为方波信号，3为正弦波信号
+% PIDLB    PID控制输出信号限幅的下限
+% PIDUB    PID控制输出信号限幅的上限
+%% 输出参数列表
+% BESTX    K×1细胞结构，每一个元素是M×1向量，记录每一代的最优蚂蚁
+% BESTY    K×1矩阵，记录每一代的最优蚂蚁的评价函数值
+% ALLX     K×1细胞结构，每一个元素是M×N矩阵，记录每一代蚂蚁的位置
+% ALLY     K×N矩阵，记录每一代蚂蚁的评价函数值
+
+%% 第一步：初始化
+M=length(LB);%决策变量的个数
+%蚁群位置初始化
+X=zeros(M,N);
+for i=1:M
+    x=unifrnd(LB(i),UB(i),1,N);
+    X(i,:)=x;
+end
+%输出变量初始化
+ALLX=cell(K,1);%细胞结构，每一个元素是M×N矩阵，记录每一代的个体
+ALLY=zeros(K,N);%K×N矩阵，记录每一代评价函数值
+BESTX=cell(K,1);%细胞结构，每一个元素是M×1向量，记录每一代的最优个体
+BESTY=zeros(K,1);%K×1矩阵，记录每一代的最优个体的评价函数值
+k=1;%迭代计数器初始化
+Tau=ones(1,N);%信息素初始化
+Y=zeros(1,N);%适应值初始化
+%% 第二步：迭代过程
+while k<=K
+    YY=zeros(1,N);
+    for n=1:N
+        x=X(:,n);
+        [J,u,yout,error]=PIDOBJ(x(1),x(2),x
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+        YY(n)=J;
+    end
+    maxYY=max(YY);
+    temppos=find(YY==maxYY);
+    POS=temppos(1);
+    %蚂蚁随机探路
+    for n=1:N
+        if n~=POS
+            x=X(:,n);
+            [J,u,yout,error]=PIDOBJ(x(1),x(2),x
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+            Fx=J;
+            mx=GaussMutation(x,LB,UB);
+            [J,u,yout,error]=PIDOBJ(mx(1),mx(2),mx
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+            Fmx=J;
+            if Fmx<Fx
+                X(:,n)=mx;
+                Y(n)=Fmx;
+            elseif rand>1-(1/(sqrt(k)))
+                Y(n)=Fmx;
+            else
+                X(:,n)=x;
+                Y(n)=Fx;
+            end
+        end
+    end
+    for n=1:N
+        if n~=POS
+            x=X(:,n);
+            [J,u,yout,error]=PIDOBJ(x(1),x(2),x
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+            Fx=J;
+            mx=GaussMutation(x,LB,UB);           
+            [J,u,yout,error]=PIDOBJ(mx(1),mx(2),mx
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+            Fmx=J;
+            if Fmx<Fx
+                Y(n)=Fmx;
+            elseif rand>1-(1/(sqrt(k)))
+                X(:,n)=mx;
+                Y(n)=Fmx;
+            else
+                X(:,n)=x;
+                Y(n)=Fx;
+            end
+        end
+    end
+    %朝信息素最大的地方移动
+    for n=1:N
+        if n~=POS
+            x=X(:,n);
+            r=(K+k)/(K+K);
+            p=randperm(N);
+            t=ceil(r*N);
+            pos=p(1:t);
+            TempTau=Tau(pos);
+            maxTempTau=max(TempTau);
+            pos2=find(TempTau==maxTempTau);
+            pos3=pos(pos2(1));
+            x2=X(:,pos3(1));
+            x3=(1-Lambda)*x+Lambda*x2;
+            [J,u,yout,error]=PIDOBJ(x(1),x(2),x
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+            Fx=J;
+            [J,u,yout,error]=PIDOBJ(x(1),x(2),x
+(3),Num,Den,Delay,ts,StepNum,SigType,PIDLB,PIDUB);
+            Fx3=J;
+            if Fx3<Fx
+                X(:,n)=x3;
+                Y(n)=Fx3;
+            elseif rand>1-(1/(sqrt(k)))
+                X(:,n)=x3;
+                Y(n)=Fx3;
+            else
+                X(:,n)=x;
+                Y(n)=Fx;
+            end
+        end
+    end
+    %更新信息素并记录
+    Tau=Tau*(1-Rho);
+    maxY=max(Y);
+    minY=min(Y);
+    DeltaTau=(maxY-Y)/(maxY-minY);
+    Tau=Tau+Q*DeltaTau;
+    ALLX{k}=X;
+    ALLY(k,:)=Y;
+    minY=min(Y);
+    pos4=find(Y==minY);
+    BESTX{k}=X(:,pos4(1));
+    BESTY(k)=minY;
+    disp(k);
+    k=k+1;
+end
+% GreenSim团队原创作品，转载请注明
+% Email:greensim@163.com
+% GreenSim团队主页：http://blog.sina.com.cn/greensim
