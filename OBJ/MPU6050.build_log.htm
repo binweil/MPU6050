@@ -21,19 +21,24 @@ Target DLL:      Segger\JL2CM3.dll V2.99.13.0
 Dialog DLL:      TCM.DLL V1.14.4.0
  
 <h2>Project:</h2>
-C:\Users\Administrator\Desktop\实验32 MPU6050六轴传感器实验\USER\MPU6050.uvprojx
-Project File Date:  10/25/2017
+D:\Documents\GitHub\MPU6050-\USER\MPU6050.uvprojx
+Project File Date:  11/23/2017
 
 <h2>Output:</h2>
 Build target 'MPU6050'
-compiling VirtualDMP.c...
+compiling main.c...
+main.c(119): warning:  #550-D: variable "Pitch" was set but never used
+        float Pitch,Roll,Yaw;           //欧拉?               ^
+main.c(119): warning:  #550-D: variable "Roll" was set but never used
+        float Pitch,Roll,Yaw;           //欧拉?                     ^
+main.c: 2 warnings, 0 errors
 linking...
 Program Size: Code=64606 RO-data=10558 RW-data=688 ZI-data=1912  
 FromELF: creating hex file...
-"..\OBJ\MPU6050.axf" - 0 Error(s), 0 Warning(s).
+"..\OBJ\MPU6050.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
-  C:\Users\Administrator\Desktop\实验32 MPU6050六轴传感器实验\USER\RTE
+  D:\Documents\GitHub\MPU6050-\USER\RTE
   C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.10.0
 
 <h2>Collection of Component Files used:</h2>
